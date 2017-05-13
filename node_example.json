@@ -1,0 +1,12 @@
+{
+	"id": String,
+	"coordinate": {
+		"xMin": Double,
+		"yMin": Double,
+		"xMax": Double,
+		"yMax": Double
+	},
+	"data" : {
+		// Empty for now.	
+	}
+}

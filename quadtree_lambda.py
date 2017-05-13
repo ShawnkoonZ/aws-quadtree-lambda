@@ -14,7 +14,8 @@ import boto3
 
 # Get s3 client.
 S3_CLIENT = boto3.client('s3')
-DYNAMO_CLIENT = boto3.client('dynamodb')
+DYNAMO_RESOURCE = boto3.resource('dynamodb')
+DYNAMO_DB_TABLE_NAME = 'tf-quadtree-dynamodb'
 
 def get_bucket_name(event):
     '''
@@ -59,16 +60,49 @@ def print_detail(event, context):
     print('Received event: ' + json.dumps(event, indent=2))
     print('Current function: ' + context.function_name)
 
+def get_dynamo_db_table():
+    '''Gets DynamoDB table object'''
+    return DYNAMO_RESOURCE.Table(DYNAMO_DB_TABLE_NAME)
+
+def put_dynamo_db_object(table, objest_row):
+    '''
+    Put object row into DynamoDB table with proper format.
+    @param object_row : Row || str form of object to be inserted into DynamoDB
+    '''
+    object_row_list = objest_row.strip().split(',')
+    table.put_item(
+        Item={
+            'id': object_row_list[0],
+            'coordinate': {
+                'xMin': float(object_row_list[1]),
+                'yMin': float(object_row_list[2]),
+                'xMax': float(object_row_list[3]),
+                'yMax': float(object_row_list[4]),
+            },
+            'data': {
+
+            },
+        }
+    )
+
 def launch_container(event, context):
     '''
     Lambda entry function that receives event & context.
     @param event : received event.
     @param context : current context info.
     '''
-    print_detail(event, context)
-    src_bucket = get_bucket_name(event)
-    src_key = get_key_name(event)
+    try:
+        print_detail(event, context)
+        src_bucket = get_bucket_name(event)
+        src_key = get_key_name(event)
 
-    s3_object = read_object(src_bucket, src_key)
-    s3_object_list = to_string(s3_object['Body'].read()).split('\n')
-    print(s3_object_list)
+        s3_object = read_object(src_bucket, src_key)
+        s3_object_list = to_string(s3_object['Body'].read()).split('\n')
+        dynamo_db_object = get_dynamo_db_table()
+
+        for s3_object_row in s3_object_list:
+            put_dynamo_db_object(dynamo_db_object, s3_object_row)
+
+    except Exception as error:
+        print(error)
+        raise error
