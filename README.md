@@ -23,3 +23,7 @@ http://docs.aws.amazon.com/lambda/latest/dg/lambda-introduction-function.html
 http://docs.aws.amazon.com/lambda/latest/dg/python-context-object.html
 
 https://aws.amazon.com/blogs/compute/better-together-amazon-ecs-and-aws-lambda/
+
+http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBMapper.DataTypes.html
+
+https://aws.amazon.com/lambda/pricing/

@@ -10,6 +10,7 @@
   python v3.6
 '''
 import json
+import decimal
 import boto3
 
 # Get s3 client.
@@ -70,14 +71,16 @@ def put_dynamo_db_object(table, objest_row):
     @param object_row : Row || str form of object to be inserted into DynamoDB
     '''
     object_row_list = objest_row.strip().split(',')
+    print('object_row_list : ', end='')
+    print(object_row_list)
     table.put_item(
         Item={
             'id': object_row_list[0],
             'coordinate': {
-                'xMin': float(object_row_list[1]),
-                'yMin': float(object_row_list[2]),
-                'xMax': float(object_row_list[3]),
-                'yMax': float(object_row_list[4]),
+                'xMin': decimal.Decimal(object_row_list[1]),
+                'yMin': decimal.Decimal(object_row_list[2]),
+                'xMax': decimal.Decimal(object_row_list[3]),
+                'yMax': decimal.Decimal(object_row_list[4]),
             },
             'data': {
 
@@ -97,11 +100,12 @@ def launch_container(event, context):
         src_key = get_key_name(event)
 
         s3_object = read_object(src_bucket, src_key)
-        s3_object_list = to_string(s3_object['Body'].read()).split('\n')
+        s3_object_list = to_string(s3_object['Body'].read()).strip().split('\n')
         dynamo_db_object = get_dynamo_db_table()
-
         for s3_object_row in s3_object_list:
+            print('=> About to put a row into the DynamoDB table :')
             put_dynamo_db_object(dynamo_db_object, s3_object_row)
+            print('=> Successfully inserted row into the table.')
 
     except Exception as error:
         print(error)
